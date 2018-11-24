@@ -67,19 +67,21 @@ func main() {
 	defer db.Close()
 
 	// --------------
-	// for i := range y {
-	// 	// log.Infof("%+v", y[i])
-	// 	sqlStatement := `
-	// 	INSERT INTO aws (id, sha, ref, status, web_url)
-	// 	VALUES ($1, $2, $3, $4, $5)
-	// 	RETURNING id`
-	// 	id := 0
-	// 	err = db.QueryRow(sqlStatement, y[i].ID, y[i].Sha, y[i].Ref, y[i].Status, y[i].WebURL).Scan(&id)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	fmt.Println("New record ID is:", id)
-	// }
+	for i := range y {
+		// log.Infof("%+v", y[i])
+		sqlStatement := `
+		INSERT INTO aws (id, sha, ref, status, web_url)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (id) DO UPDATE
+		SET status = $4
+		RETURNING id`
+		id := 0
+		err = db.QueryRow(sqlStatement, y[i].ID, y[i].Sha, y[i].Ref, y[i].Status, y[i].WebURL).Scan(&id)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("New record ID is:", id)
+	}
 	// --------------
 
 	http.HandleFunc("/api", indexHandler)

@@ -11,19 +11,18 @@ import (
 
 // Awshandler return aws pipeline data to api
 func Awshandler(w http.ResponseWriter, r *http.Request) {
-	datasaws := dashboardaws{}
-	err := QueryAwsData(&datasaws)
+	datas := dashboard{}
+	err := QueryAwsData(&datas)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	outaws, err := json.Marshal(datasaws)
-	// log.Infof("%+v", outaws)
+	out, err := json.Marshal(datas)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	fmt.Fprintf(w, string(outaws))
+	fmt.Fprintf(w, string(out))
 	go AwsData()
 }
 
@@ -58,13 +57,12 @@ func AwsData() {
 }
 
 // QueryAwsData first fetches the dashboard data from the db
-func QueryAwsData(datasaws *dashboardaws) error {
+func QueryAwsData(datas *dashboard) error {
 	rows, err := database.Db.Query(`
 		SELECT
 			*
 		FROM aws
 		ORDER BY id DESC`)
-	// log.Infof("%+v", rows)
 	if err != nil {
 		return err
 	}
@@ -81,7 +79,7 @@ func QueryAwsData(datasaws *dashboardaws) error {
 		if err != nil {
 			return err
 		}
-		datasaws.Dashboardaws = append(datasaws.Dashboardaws, data)
+		datas.Dashboard = append(datas.Dashboard, data)
 	}
 	err = rows.Err()
 	if err != nil {

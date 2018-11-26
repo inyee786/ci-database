@@ -11,8 +11,13 @@ import (
 
 func main() {
 	database.InitDb()
-	// defer db.Close()
+	// defer database.Db.Close()
 	http.HandleFunc("/gke", handler.Gkehandler)
 	http.HandleFunc("/aws", handler.Awshandler)
+	http.HandleFunc("/gcp", handler.Gcphandler)
+	http.HandleFunc("/azure", handler.Azurehandler)
+	http.HandleFunc("/packet", handler.Packethandler)
+	http.HandleFunc("/eks", handler.Ekshandler)
+	http.HandleFunc("/build", handler.Buildhandler)
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
 }

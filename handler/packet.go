@@ -9,10 +9,10 @@ import (
 	"github.com/openebs/ci-database/database"
 )
 
-// Gkehandler for fetch data from gitlab api as well as database
-func Gkehandler(w http.ResponseWriter, r *http.Request) {
+// Packethandler return packet pipeline data to api
+func Packethandler(w http.ResponseWriter, r *http.Request) {
 	datas := dashboard{}
-	err := queryData(&datas)
+	err := QueryPacketData(&datas)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -23,12 +23,12 @@ func Gkehandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, string(out))
-	go gkeData()
+	go PacketData()
 }
 
-// Get data from gitlab api for gke and push to database
-func gkeData() {
-	url := "https://gitlab.openebs.ci/api/v4/projects/24/pipelines?ref=master"
+// PacketData from gitlab api for packet and dump to database
+func PacketData() {
+	url := "https://gitlab.openebs.ci/api/v4/projects/20/pipelines?ref=master"
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Add("PRIVATE-TOKEN", "GN5eUuyg-ybHErwYLR3T")
 	res, err := http.DefaultClient.Do(req)
@@ -37,11 +37,12 @@ func gkeData() {
 	}
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
+	// fmt.Println(string(body))
 	var y Pipeline
 	json.Unmarshal(body, &y)
 	for i := range y {
 		sqlStatement := `
-			INSERT INTO gke (id, sha, ref, status, web_url)
+			INSERT INTO packet (id, sha, ref, status, web_url)
 			VALUES ($1, $2, $3, $4, $5)
 			ON CONFLICT (id) DO UPDATE
 			SET status = $4
@@ -51,16 +52,16 @@ func gkeData() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("New record ID for gke:", id)
+		fmt.Println("New record ID for packet:", id)
 	}
 }
 
-// queryData first fetches the dashboard data from the db
-func queryData(datas *dashboard) error {
+// QueryPacketData first fetches the dashboard data from the db
+func QueryPacketData(datas *dashboard) error {
 	rows, err := database.Db.Query(`
 		SELECT
 			*
-		FROM gke
+		FROM packet
 		ORDER BY id DESC`)
 	if err != nil {
 		return err
